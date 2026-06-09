@@ -1,0 +1,45 @@
+{
+  "manifest_version": 3,
+  "name": "Vimeo Downloader Full",
+  "version": "1.0.0",
+  "description": "Descarga videos de Vimeo a los que tienes acceso. Version completa y gratuita.",
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "Vimeo Downloader Full"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.vimeo.com/*", "*://*/*"],
+      "js": ["content-inject.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": ["*://*.vimeo.com/*", "*://*/*"],
+      "js": ["content-main.js"],
+      "run_at": "document_end",
+      "all_frames": true
+    }
+  ],
+  "permissions": ["tabs", "storage", "downloads"],
+  "host_permissions": ["*://*.vimeo.com/*", "*://*.vimeocdn.com/*", "*://*.vimeo.com/video/*"],
+  "web_accessible_resources": [
+    {
+      "resources": ["ajax-listener.js", "icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

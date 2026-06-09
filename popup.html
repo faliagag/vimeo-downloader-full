@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vimeo Downloader Full</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: 360px;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      font-size: 13px;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: #161616;
+      padding: 13px 16px;
+      border-bottom: 1px solid #242424;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-logo {
+      width: 32px; height: 32px;
+      background: #1ab7ea;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .header-logo svg { color: #fff; }
+    .header-info { flex: 1; overflow: hidden; }
+    .header-name {
+      font-size: 14px; font-weight: 700; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .header-sub { font-size: 11px; color: #555; margin-top: 1px; }
+    .badge-full {
+      background: #1ab7ea22; color: #1ab7ea;
+      border: 1px solid #1ab7ea44;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 7px; border-radius: 99px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---- Status bar ---- */
+    .status-bar {
+      padding: 8px 16px;
+      background: #111;
+      border-bottom: 1px solid #1e1e1e;
+      display: flex; align-items: center; gap: 7px;
+      font-size: 11px; color: #666;
+    }
+    .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #333; flex-shrink: 0;
+    }
+    .dot.ok     { background: #22c55e; }
+    .dot.busy   { background: #f59e0b; animation: blink 1s infinite; }
+    .dot.error  { background: #ef4444; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    /* ---- Content ---- */
+    .body { padding: 14px 16px; }
+
+    .video-title {
+      font-size: 12px; color: #888;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 12px;
+    }
+
+    /* ---- Boton principal ---- */
+    .btn-best {
+      width: 100%;
+      padding: 11px 14px;
+      background: #1ab7ea;
+      color: #fff;
+      font-size: 13px; font-weight: 700;
+      border: none; border-radius: 8px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: background .15s;
+      margin-bottom: 12px;
+    }
+    .btn-best:hover  { background: #13a0d1; }
+    .btn-best:active { background: #0e87b3; transform: scale(.99); }
+    .btn-best:disabled { background: #1e1e1e; color: #444; cursor: not-allowed; transform: none; }
+
+    /* ---- Separador ---- */
+    .divider {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; color: #333;
+      margin-bottom: 12px;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px; background: #222;
+    }
+
+    /* ---- Lista de calidades ---- */
+    .quality-list { display: flex; flex-direction: column; gap: 5px; }
+
+    .quality-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 11px;
+      background: #161616;
+      border: 1px solid #242424;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .quality-row:hover { background: #1b1b1b; border-color: #1ab7ea44; }
+
+    .q-label { display: flex; align-items: center; gap: 8px; }
+    .q-badge {
+      font-size: 11px; font-weight: 700;
+      padding: 2px 7px; border-radius: 4px;
+      background: #222; color: #888;
+    }
+    .q-badge.hd  { background: #1ab7ea18; color: #1ab7ea; }
+    .q-badge.fhd { background: #6366f118; color: #818cf8; }
+    .q-badge.uhd { background: #f59e0b18; color: #f59e0b; }
+
+    .q-size { font-size: 11px; color: #444; }
+
+    .btn-dl {
+      padding: 4px 10px;
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 5px;
+      color: #999;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+      transition: all .15s;
+    }
+    .btn-dl:hover { background: #252525; color: #ccc; border-color: #1ab7ea44; }
+    .btn-dl:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ---- Estados vacio / cargando ---- */
+    .state-box {
+      text-align: center;
+      padding: 30px 16px;
+      color: #555;
+    }
+    .state-box svg { margin: 0 auto 12px; opacity: .3; }
+    .state-title { font-size: 13px; color: #777; margin-bottom: 6px; }
+    .state-hint  { font-size: 11px; color: #444; line-height: 1.55; max-width: 26ch; margin: 0 auto; }
+
+    .spinner {
+      width: 22px; height: 22px;
+      border: 2px solid #1e1e1e;
+      border-top-color: #1ab7ea;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .btn-retry {
+      margin-top: 14px;
+      padding: 7px 18px;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: #777; font-size: 12px;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .btn-retry:hover { background: #222; color: #aaa; }
+
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed; bottom: 10px; left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: #1e1e1e; border: 1px solid #2a2a2a;
+      color: #bbb; padding: 7px 15px;
+      border-radius: 6px; font-size: 12px;
+      opacity: 0; transition: all .2s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.ok  { border-color: #22c55e44; color: #22c55e; }
+    .toast.err { border-color: #ef444444; color: #ef4444; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-logo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polygon points="5,3 19,12 5,21"/>
+      </svg>
+    </div>
+    <div class="header-info">
+      <div class="header-name">Vimeo Downloader</div>
+      <div class="header-sub">Descarga los videos a los que tienes acceso</div>
+    </div>
+    <span class="badge-full">FULL</span>
+  </div>
+
+  <div class="status-bar">
+    <div class="dot" id="dot"></div>
+    <span id="statusMsg">Iniciando...</span>
+  </div>
+
+  <div class="body" id="body">
+    <div class="state-box">
+      <div class="spinner"></div>
+      <div class="state-hint">Buscando video...</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script src="popup.js"></script>
+</body>
+</html>
